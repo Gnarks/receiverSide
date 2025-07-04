@@ -1,0 +1,325 @@
+options:
+  parameters:
+    author: ''
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: untitled
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: Not titled yet
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 8]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: distance
+  id: variable
+  parameters:
+    comment: ''
+    value: '5'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 88.0]
+    rotation: 0
+    state: enabled
+- name: frequency
+  id: variable
+  parameters:
+    comment: ''
+    value: 868e6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [232, 24.0]
+    rotation: 0
+    state: enabled
+- name: indoor
+  id: variable
+  parameters:
+    comment: ''
+    value: 'True'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [80, 88.0]
+    rotation: 0
+    state: enabled
+- name: ip
+  id: variable
+  parameters:
+    comment: ''
+    value: '"0.0.0.0"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [168, 152.0]
+    rotation: 0
+    state: enabled
+- name: other
+  id: variable
+  parameters:
+    comment: ''
+    value: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [264, 152.0]
+    rotation: 0
+    state: enabled
+- name: port
+  id: variable
+  parameters:
+    comment: ''
+    value: '12345'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [80, 152.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 250e3
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [152, 24.0]
+    rotation: 0
+    state: enabled
+- name: save_directory
+  id: variable
+  parameters:
+    comment: ''
+    value: '"Capture/testSave"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [152, 88.0]
+    rotation: 0
+    state: enabled
+- name: scenario
+  id: variable
+  parameters:
+    comment: ''
+    value: '"poc"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 152.0]
+    rotation: 0
+    state: enabled
+- name: blocks_file_sink_0
+  id: blocks_file_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    append: 'True'
+    comment: ''
+    file: /home/etude/Documents/prog/bir_playground/grc/Capture/testSave/fileSink/filesink
+    type: complex
+    unbuffered: 'False'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [328, 224.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nfrom sigmf import\
+      \ SigMFFile\nfrom sigmf.utils import get_data_type_str, get_sigmf_iso8601_datetime_now\n\
+      import time\nimport socket\nimport os\n\nclass SyncFileSaver(gr.sync_block):\n\
+      \    \"\"\"\n    docstring for block SyncFileSaver\n    \"\"\"\n    def __init__(self,\
+      \ \n                sample_rate=64000,\n                 distance=5,\n     \
+      \            indoor=True,\n                 save_directory=\"~/Music/testSave/\"\
+      ,\n                 scenario_name=\"poc\",\n                 port=12345,\n \
+      \                ip_address=\"127.0.0.1\",\n                 other_info=\"\"\
+      ,\n                 ):\n        gr.sync_block.__init__(self,\n            name=\"\
+      Syncronised File Saver\",\n            in_sig=[np.complex64],\n            out_sig=None)\n\
+      \n        # first, establish the TCP connection with the transmitter\n\n   \
+      \     self.connected = False\n        self.port = port\n        self.ip_address\
+      \ = ip_address\n\n\n        # set the current cycle at 0\n        self.current_cycle\
+      \ = 0\n\n        # root directory to save the scenario directory to \n     \
+      \   self.save_directory = save_directory\n        # name of directory to save\
+      \ the devices directories (where all the capture files belong)\n        self.scenario_name\
+      \ = scenario_name\n\n        # scenario context \n        self.sample_rate =\
+      \ sample_rate\n        self.description = f\"capture at {distance}m {\"indoor\"\
+      \ if indoor else \"outdoor\"}. {other_info}\"\n\n\n    def work(self, input_items,\
+      \ output_items):\n        data = input_items[0]\n\n\n        if self.connected\
+      \ == False:\n\n            print(f\"Waiting for transmitter to connect to PORT:{self.port}\"\
+      )\n            # by IP with TCP \n            sock = socket.socket(socket.AF_INET,\
+      \ socket.SOCK_STREAM)\n            sock.bind((self.ip_address, self.port))\n\
+      \n            sock.listen(5)\n            self.conn, addr = sock.accept()\n\
+      \            print(\"Connected established with transmitter\")\n\n\n       \
+      \     # transmission parameters\n            self.frequency = self.get_next_var_from_sock(self.conn)\
+      \ * 1e6\n            print(f\"frequency received: {self.frequency}\")\n\n  \
+      \          self.sf = self.get_next_var_from_sock(self.conn)\n            print(f\"\
+      sf received: {self.sf}\")\n\n            self.bw = self.get_next_var_from_sock(self.conn)\
+      \ * 1e3\n            print(f\"bw received: {self.bw}\")\n\n\n            # device\
+      \ list to keep track of the origin of the signal\n            self.device_list\
+      \ = self.get_next_var_from_sock(self.conn)\n            print(f\"device list\
+      \ received: {self.device_list}\")\n           \n            # set the first\
+      \ device to be listened to \n            self.current_device, self.current_index\
+      \ = self.device_list[0], 0\n\n            # time synchronisation parameters\
+      \ \n            self.start_time = self.get_next_var_from_sock(self.conn)\n \
+      \           print(f\"start_time received: {self.start_time} compared to current\
+      \ {time.perf_counter()}\")\n            \n            self.period = self.get_next_var_from_sock(self.conn)\
+      \  # should be given in s\n            print(f\"period received: {self.period}\"\
+      )\n\n            # next time to save the file\n            self.next = self.start_time\
+      \ + self.period\n\n            self.cycles = self.get_next_var_from_sock(self.conn)\n\
+      \            print(f\"cycles received: {self.cycles}\")\n            self.connected\
+      \ = True\n            self.conn.close()\n\n        # wait for the start time\n\
+      \        if time.perf_counter() < self.start_time:\n            return 0\n \
+      \       # stop if all captured\n        if self.current_cycle >= self.cycles:\n\
+      \            return 0\n        \n        # wait for the period to save the file\n\
+      \        finished = self.save_frame_during_period(input_items)\n\n        #\
+      \ move the current index and device\n        if finished:\n            self.next_device()\n\
+      \n        return 0\n\n    def save_frame_during_period(self, data):\n      \
+      \  \"\"\" waiting until the next period \"\"\"\n        if time.perf_counter()\
+      \ < self.next:\n            self.save_frame(data)\n            return False\n\
+      \n        print(f\"stopped saving at {time.perf_counter()} compared to {self.next}\
+      \ \\n drift : {time.perf_counter() - self.next}\")\n        self.next += self.period\n\
+      \n        # create the metadata\n        meta = SigMFFile(\n        data_file=f\"\
+      {self.save_directory}/{self.scenario_name}/device{self.current_device}/cycle_{self.current_cycle}.sigmf-data\"\
+      , # extension is optional\n        global_info = {\n            SigMFFile.DATATYPE_KEY:\
+      \ \"cf32_le\",  \n            SigMFFile.FREQUENCY_KEY: self.frequency,\n   \
+      \         SigMFFile.SAMPLE_RATE_KEY: self.sample_rate,\n            SigMFFile.DESCRIPTION_KEY:\
+      \ self.description,\n        })\n\n        meta.add_capture(self.current_cycle,\
+      \ metadata={\n            SigMFFile.DATETIME_KEY: get_sigmf_iso8601_datetime_now(),\n\
+      \        })\n\n        # save the meta file\n        meta.tofile(f\"{self.save_directory}/{self.scenario_name}/device{self.current_device}/cycle_{self.current_cycle}.sigmf-meta\"\
+      ) # extension is optional\n\n        print(f\"{self.current_device} : [{self.current_cycle}/{self.cycles}]\
+      \ saved\")\n\n        return True\n\n\n\n    def save_frame(self, input_items):\n\
+      \n        data = input_items[0]\n        # create the data file and saves it\n\
+      \        filename = f\"{self.save_directory}/{self.scenario_name}/device{self.current_device}/cycle_{self.current_cycle}.sigmf-data\"\
+      \n        os.makedirs(os.path.dirname(filename), exist_ok=True)\n        with\
+      \ open(filename, \"ab\") as f:\n            np.array(data).tofile(f)\n     \
+      \   self.consume(0, len(data))\n\n\n    def next_device(self):\n\n        #\
+      \ change device\n        print(f\"moved from {self.current_device} \", end=\"\
+      \")\n        changeCycle = self.current_index+1 == len(self.device_list)\n \
+      \       self.current_index = (self.current_index +1) % len(self.device_list)\n\
+      \        self.current_device = self.device_list[self.current_index]\n\n    \
+      \    print(f\"to {self.current_device}\")\n        # if the last device in the\
+      \ list\n        if changeCycle:\n            self.current_cycle += 1\n     \
+      \       print(f\"next cycle :{self.current_cycle}\")\n\n        print()\n  \
+      \      if self.current_cycle == self.cycles:\n            print(\"all cycles\
+      \ are done !\")\n\n    def get_next_var_from_sock(self, sock):\n\n        sep\
+      \ = '\\n'\n        data = sock.recv(1).decode(\"utf-8\")\n        buf = data\n\
+      \        # if deconnected\n        if data == '':\n            raise Exception(\"\
+      tried to read a variable but empty socket buffer\")\n\n        # while not seen\
+      \ the separator\n        while sep not in buf and data:\n            buf +=\
+      \ sock.recv(1).decode(\"utf-8\")\n\n        if buf != '':\n            data\
+      \ = eval(buf)\n            return data\n            \n            \n\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    distance: distance
+    indoor: indoor
+    ip_address: ip
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    other_info: other
+    port: port
+    sample_rate: samp_rate
+    save_directory: save_directory
+    scenario_name: scenario
+  states:
+    _io_cache: ('Syncronised File Saver', 'SyncFileSaver', [('sample_rate', '64000'),
+      ('distance', '5'), ('indoor', 'True'), ('save_directory', "'~/Music/testSave/'"),
+      ('scenario_name', "'poc'"), ('port', '12345'), ('ip_address', "'127.0.0.1'"),
+      ('other_info', "''")], [('0', 'complex', 1)], [], '\ndocstring for block SyncFileSaver\n',
+      ['ip_address', 'port', 'sample_rate', 'save_directory', 'scenario_name'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [416, 316.0]
+    rotation: 0
+    state: enabled
+- name: soapy_rtlsdr_source_0
+  id: soapy_rtlsdr_source
+  parameters:
+    affinity: ''
+    agc: 'False'
+    alias: ''
+    bias: 'False'
+    bufflen: '16384'
+    center_freq: frequency
+    comment: ''
+    dev_args: ''
+    freq_correction: '0'
+    gain: '20'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    type: fc32
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [80, 328.0]
+    rotation: 0
+    state: enabled
+- name: time_synchronisation_SyncFileSaver_0
+  id: time_synchronisation_SyncFileSaver
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    distance: '5'
+    indoor: 'True'
+    ip_address: 172.0.0.1
+    other_info: ''
+    port: '12345'
+    sample_rate: '5'
+    save_directory: ''
+    scenario_name: ''
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [520, 44.0]
+    rotation: 0
+    state: disabled
+
+connections:
+- [soapy_rtlsdr_source_0, '0', blocks_file_sink_0, '0']
+- [soapy_rtlsdr_source_0, '0', epy_block_0, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.12.0
